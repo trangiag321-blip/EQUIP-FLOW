@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HỆ THỐNG QUẢN LÝ THIẾT BỊ PHÒNG THÍ NGHIỆM SPKT</title>
+  <style>
+    .activity-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.activity-filter-btn {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid transparent;
+  color: #e7eefc;
+  padding: 8px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: .15s;
+  font-size: 13px;
+}
+
+.activity-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+/* giống menu trái */
+.activity-filter-btn.is-active {
+  /* nền đậm hơn */
+  background: radial-gradient(circle at top, rgba(13,26,44,1) 0%, rgba(7,13,22,1) 60%);
+  /* viền rõ hơn */
+  border: 1px solid rgba(154, 189, 255, 0.85);
+  color: #fff;
+  /* bo góc giống dashboard */
+  border-radius: 14px;
+  /* đổ bóng nhẹ để nổi khỏi nền */
+  box-shadow: 0 10px 30px rgba(6, 30, 68, 0.35);
+}
+
+
+    /* ====== DASHBOARD STYLE (giữ nguyên theo bản bạn gửi) ====== */
+    :root {
+      --bg: #0b0f14;
+      --panel: #121823;
+      --panel-2: #0f1622;
+      --muted: #c7d1e0;
+      --text: #e7eefc;
+      --brand: #6aa7ff;
+      --brand-2: #80ffd3;
+      --danger: #ff6b6b;
+      --ok: #22c55e;
+      --warning: #f59e0b;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 20% -10%, #132238 0, transparent 60%),
+        radial-gradient(900px 600px at 120% 0%, #062137 0, transparent 55%),
+        linear-gradient(180deg, #0a0f16, #0b0f14);
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      height: 100%
+    }
+
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: linear-gradient(180deg, rgba(15, 23, 36, .8), rgba(15, 23, 36, .6));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .3px
+    }
+
+    .logo-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      background: conic-gradient(from 180deg at 50% 50%, var(--brand), var(--brand-2));
+      box-shadow: var(--shadow)
+    }
+    /* ✅ Logo dạng ảnh (thay cho .logo-badge ở header) */
+    .logo-img{
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: var(--shadow);
+    }
+
+    /* ✅ Spacer để thay phần search đã xoá */
+    .header-spacer{
+      flex: 1;
+    }
+
+    /* tăng size chữ tiêu đề ở header */
+  .logo .title span{
+    font-size: 20px;        
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: .4px;
+  }
+
+
+
+    .search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: #0c121d;
+      padding: 8px 10px;
+      border-radius: 12px;
+      max-width: 720px
+    }
+
+    .search input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--text)
+    }
+
+    .chip {
+      padding: 6px 10px;
+      background: #0e1622;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 10px
+    }
+
+    .role {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .role select {
+      background: #0c121d;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 10px;
+      padding: 8px 10px
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      padding: 18px;
+      height: calc(100% - 64px)
+    }
+
+    aside {
+      background: linear-gradient(180deg, #0d1522, #0b111b);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      overflow: auto
+    }
+
+    main {
+      overflow: auto
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .nav-item:hover {
+      background: #0e1726;
+      color: var(--text)
+    }
+
+    .nav-item.active {
+      background: linear-gradient(180deg, #0d1a2c, #0b1422);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 6px 4px;
+      color: #9bb2ce;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    .page {
+      display: grid;
+      gap: 18px
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px
+    }
+
+    .card {
+      grid-column: span 12;
+      background: linear-gradient(180deg, #0f1726, #0c1320);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px
+    }
+
+    @media(min-width:900px) {
+      .card.sm-4 {
+        grid-column: span 4
+      }
+
+      .card.sm-6 {
+        grid-column: span 6
+      }
+
+      .card.sm-8 {
+        grid-column: span 8
+      }
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 8px
+    }
+
+    h2 {
+      font-size: 16px;
+      margin: 0 0 6px
+    }
+
+    p.muted {
+      color: #a8bad6;
+      margin: 6px 0 0
+    }
+
+    .kpi {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .kpi .num {
+      font-weight: 800;
+      font-size: 28px
+    }
+
+    .kpi .tag {
+      font-size: 12px;
+      color: #9bb2ce
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px dashed rgba(255, 255, 255, .07)
+    }
+
+    th {
+      color: #a8bad6;
+      text-align: left;
+      font-weight: 600
+    }
+
+    tr:hover td {
+      background: #0e1625
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .pill.ok {
+      background: rgba(34, 197, 94, .12);
+      border-color: rgba(34, 197, 94, .45)
+    }
+
+    .pill.warn {
+      background: rgba(245, 158, 11, .12);
+      border-color: rgba(245, 158, 11, .45)
+    }
+
+    .pill.bad {
+      background: rgba(255, 107, 107, .12);
+      border-color: rgba(255, 107, 107, .45)
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0d1523;
+      color: var(--text);
+      cursor: pointer
+    }
+
+    .btn:hover {
+      background: #0f1c2f
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #1c3c77, #162a55);
+      border-color: #24457c
+    }
+
+    .btn.ghost {
+      background: transparent
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, #742d2d, #5a1f1f);
+      border-color: #7a3737
+    }
+
+    .btn:disabled,
+    .btn[disabled] {
+      opacity: .45;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: saturate(.7);
+    }
+
+
+    .grid {
+      display: grid;
+      gap: 12px
+    }
+
+    .grid.cols-2 {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    @media(max-width:800px) {
+
+      .grid.cols-2,
+      .grid.cols-3 {
+        grid-template-columns: 1fr
+      }
+    }
+
+    label {
+      font-size: 12px;
+      color: #9bb2ce
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0c121d;
+      color: var(--text)
+    }
+
+    textarea {
+      min-height: 80px
+    }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #0e1a2a;
+      border: 1px solid rgba(255, 255, 255, .08);
+      padding: 12px 14px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: none
+    }
+
+    .toast.show {
+      display: block
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #0f1a2c;
+      border: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .muted-2 {
+      color: #93a7c4
+    }
+
+    /* ====== AUTH (đơn giản) ====== */
+    .hidden {
+      display: none !important
+    }
+
+    .auth {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(10, 15, 22, .7), rgba(11, 15, 20, .9));
+      z-index: 10
+    }
+
+    .auth-card {
+      width: min(920px, 95%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      background: linear-gradient(180deg, #0f1726, #0c1320);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px
+    }
+
+    .auth-brand {
+      padding: 8px 10px
+    }
+
+    .auth-brand .logo-badge.big {
+      width: 48px;
+      height:48px;
+      border-radius: 16px;
+      margin-bottom: 10px
+    }
+
+    .auth-brand .logo-img.big{
+    width: 80px;     
+    height: 80px;    
+    border-radius: 5px; 
+    margin-bottom: 5px;
+    object-fit: contain;
+    box-shadow: var(--shadow);
+    }
+    
+
+
+    .auth-bullets {
+      margin: 8px 0 0 18px;
+      color: #a8bad6
+    }
+
+    .auth-forms {
+      border-left: 1px dashed rgba(255, 255, 255, .08);
+      padding-left: 12px
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px
+    }
+
+    .tab {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0d1523;
+      color: var(--text);
+      cursor: pointer
+    }
+
+    .tab.active {
+      background: #162a55;
+      border-color: #24457c
+    }
+
+    .form {
+      display: none;
+      gap: 8px
+    }
+
+    .form.visible {
+      display: grid
+    }
+
+    @media(max-width:900px) {
+      .auth-card {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+
+
+  <style>
+    
+    /* ===== Inlined from styles.css (compact build) ===== */
+    /* ===== Theme ===== */
+    :root {
+      --bg: #0b0f14;
+      --panel: #111726;
+      --panel-2: #0e1522;
+      --muted: #c7d1e0;
+      --text: #e7eefc;
+      --brand: #6aa7ff;
+      --brand-2: #80ffd3;
+      --danger: #ff6b6b;
+      --ok: #22c55e;
+      --warning: #f59e0b;
+      --shadow: 0 16px 40px rgba(0, 0, 0, .5);
+      --radius: 18px;
+    }
+
+    * {
+      
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+      color: var(--text);
+      background:
+        radial-gradient(1100px 680px at 20% -10%, #12233c 0, transparent 60%),
+        radial-gradient(1000px 660px at 120% 0%, #071f35 0, transparent 55%),
+        linear-gradient(180deg, #0a0f16, #0b0f14);
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    /* ===== Auth ===== */
+    .auth {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+
+      /* ✅ NỀN NGOÀI CÙNG (toàn màn hình đăng nhập) */
+      background:
+        linear-gradient(180deg, rgba(10, 15, 22, .65), rgba(11, 15, 20, .90)),
+        url("image_school.jpg") center/cover no-repeat fixed;
+
+      z-index: 10;
+    }
+
+
+    .auth-card {
+      width: min(1080px, 96vw);
+      background: linear-gradient(180deg, #0f1726, #0c1320);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      overflow: hidden
+    }
+
+    .auth-brand {
+      padding: 28px;
+      background: radial-gradient(600px 420px at -10% -10%, #172845 0, transparent 60%), linear-gradient(180deg, #0e1623, #0b111b);
+      border-right: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .logo-badge.big {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: conic-gradient(from 180deg at 50% 50%, var(--brand), var(--brand-2))
+    }
+
+    .auth-bullets {
+      color: #9bb2ce;
+      padding-left: 20px
+    }
+
+    .auth-hint {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px dashed rgba(255, 255, 255, .14);
+      border-radius: 12px;
+      color: #9bb2ce;
+      background: #0e1829
+    }
+
+    .auth-forms {
+      padding: 28px
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0d1523;
+      color: var(--text);
+      cursor: pointer
+    }
+
+    .tab.active {
+      background: linear-gradient(180deg, #1c3c77, #162a55);
+      border-color: #24457c
+    }
+
+    .form {
+      display: none
+    }
+
+    .form.visible {
+      display: grid;
+      gap: 10px
+    }
+
+    .form label {
+      font-size: 12px;
+      color: #9bb2ce
+    }
+
+    .form input,
+    .form select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0c121d;
+      color: var(--text)
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0d1523;
+      color: var(--text);
+      cursor: pointer
+    }
+
+    .btn:hover {
+      background: #0f1c2f
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #1c3c77, #162a55);
+      border-color: #24457c
+    }
+
+    .btn.full {
+      width: 100%
+    }
+
+    /* ===== App Shell ===== */
+    .app {
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      height: 100%
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: linear-gradient(180deg, rgba(15, 23, 36, .8), rgba(15, 23, 36, .6));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .3px
+    }
+
+    .logo-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      background: conic-gradient(from 180deg at 50% 50%, var(--brand), var(--brand-2));
+      box-shadow: var(--shadow)
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #0f1a2c;
+      border: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: #0c121d;
+      padding: 8px 10px;
+      border-radius: 12px;
+      max-width: 820px
+    }
+
+    .search input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--text)
+    }
+
+    .role {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .role select {
+      background: #0c121d;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 10px;
+      padding: 8px 10px
+    }
+
+    .chip {
+      padding: 6px 10px;
+      background: #0e1622;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 10px
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 18px;
+      padding: 18px;
+      height: calc(100% - 64px)
+    }
+
+    aside {
+      background: linear-gradient(180deg, #0d1522, #0b111b);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      overflow: auto
+    }
+
+    main {
+      overflow: auto
+    }
+
+    /* ===== Sidebar (giống ảnh) ===== */
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      color: #b9c6dc;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .nav-item:hover {
+      background: #0f1a2c;
+      color: #fff;
+      border-color: rgba(255, 255, 255, .06)
+    }
+
+    .nav-item.active {
+      background: linear-gradient(180deg, #0e1a2b, #0b1422);
+      color: #fff;
+      border-color: rgba(255, 255, 255, .10);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04), 0 6px 18px rgba(0, 0, 0, .35);
+    }
+
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      background: radial-gradient(140% 140% at 30% 20%, rgba(255, 255, 255, .12) 0, rgba(255, 255, 255, .02) 45%, transparent 60%),
+        linear-gradient(180deg, #162338, #0d1628);
+      border: 1px solid rgba(255, 255, 255, .07);
+    }
+
+    .nav-item.active .nav-icon {
+      background: conic-gradient(from 180deg, #6aa7ff, #80ffd3);
+      color: #0a0f16;
+      border-color: transparent;
+    }
+
+    .nav-label {
+      font-weight: 600
+    }
+
+    /* ===== NAV BADGE (thông báo) ===== */
+.nav-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+
+.nav-badge{
+  margin-left:auto;
+  min-width:20px;
+  height:20px;
+  padding:0 7px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:800;
+  line-height:20px;
+  color:#0a0f16;
+  background: conic-gradient(from 180deg, #ff5f7a, #ffd36a, #6aa7ff, #80ffd3);
+  box-shadow: 0 6px 14px rgba(0,0,0,.35);
+}
+
+
+    .section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 6px 6px;
+      color: #dde4ec;
+      font-weight: 700;
+      font-size: 17px;
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    /* ===== Content & Cards ===== */
+    .page {
+      display: grid;
+      gap: 18px
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px
+    }
+
+    .card {
+      grid-column: span 12;
+      background: linear-gradient(180deg, #0f1726, #0c1320);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px
+    }
+
+    @media (min-width: 1100px) {
+      .card.sm-4 {
+        grid-column: span 4
+      }
+
+      .card.sm-8 {
+        grid-column: span 8
+      }
+    }
+
+    .kpi {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .kpi .num {
+      font-weight: 800;
+      font-size: 32px
+    }
+
+    .kpi .tag {
+      font-size: 12px;
+      color: #9bb2ce
+    }
+
+    .kpi-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 18px;
+      background: radial-gradient(400px 140px at -10% -10%, rgba(255, 255, 255, .04) 0, transparent 60%), #0f1726;
+      border: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px dashed rgba(255, 255, 255, .07)
+    }
+
+    th {
+      color: #a8bad6;
+      text-align: left;
+      font-weight: 600
+    }
+
+    tr:hover td {
+      background: #0e1625
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .pill.ok {
+      background: rgba(34, 197, 94, .12);
+      border-color: rgba(34, 197, 94, .45)
+    }
+
+    .pill.warn {
+      background: rgba(245, 158, 11, .12);
+      border-color: rgba(245, 158, 11, .45)
+    }
+
+    .pill.bad {
+      background: rgba(255, 107, 107, .12);
+      border-color: rgba(255, 107, 107, .45)
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0d1523;
+      color: #fff;
+      cursor: pointer
+    }
+
+    .btn:hover {
+      background: #0f1c2f
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #1c3c77, #162a55);
+      border-color: #24457c
+    }
+
+    .btn.ghost {
+      background: transparent
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, #742d2d, #5a1f1f);
+      border-color: #7a3737
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 10px
+    }
+
+    h2 {
+      font-size: 16px;
+      margin: 0 0 6px
+    }
+
+    p.muted {
+      color: #a8bad6;
+      margin: 6px 0 0
+    }
+
+    .muted-2 {
+      color: #93a7c4
+    }
+
+    /* form grid cho các màn Lab */
+    .grid {
+      display: grid;
+      gap: 12px
+    }
+
+    .grid.cols-2 {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    @media (max-width: 800px) {
+
+      .grid.cols-2,
+      .grid.cols-3 {
+        grid-template-columns: 1fr
+      }
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      background: #0c121d;
+      color: var(--text)
+    }
+
+    textarea {
+      min-height: 80px
+    }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #0e1a2a;
+      border: 1px solid rgba(255, 255, 255, .08);
+      padding: 12px 14px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: none
+    }
+
+    .toast.show {
+      display: block
+    }
+
+    /* ===== Modal/Popup busy overlay ===== */
+    .modal-busy-overlay{
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      border-radius: 16px;
+    }
+    .modal-busy-overlay .box{
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(20,20,28,0.8);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-weight: 600;
+    }
+    .modal.is-busy .modal-busy-overlay{
+      display: flex;
+    }
+
+  </style>
+</head>
+
+<body>
+  
+  <!-- ===== AUTH ===== -->
+  <div id="auth" class="auth">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <img class="logo-img big" src="logo-hcmute.png" alt="Logo" />
+        <h1>QUẢN LÝ THIẾT BỊ PHÒNG THÍ NGHIỆM</h1>
+        <p class="muted">Đăng nhập để vào hệ thống</p>
+        <ul class="auth-bullets">
+          <li>Đăng nhập bằng tài khoản đã đăng ký</li>
+          <li>Hoặc tạo tài khoản mới</li>
+        </ul>
+      </div>
+
+      <div class="auth-forms">
+        <div class="auth-tabs">
+          <button id="tabLogin" class="tab active">ĐĂNG NHẬP</button>
+          <button id="tabRegister" class="tab">ĐĂNG KÝ</button>
+        </div>
+
+        <!-- Login -->
+        <form id="loginForm" class="form visible">
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="you@gmail.com" required />
+          <label>Mật khẩu</label>
+          <input id="loginPass" type="password" placeholder="••••••••" minlength="8" required />
+          <button class="btn primary" type="submit">Đăng nhập</button>
+        </form>
+
+        <!-- Register -->
+        <form id="registerForm" class="form">
+          <label>Họ tên</label>
+          <input id="regName" placeholder="Nguyễn Văn A" required />
+          <label>Email</label>
+          <input id="regEmail" type="email" placeholder="you@gmail.com" required />
+          <label>Mật khẩu (≥ 8 ký tự)</label>
+          <input id="regPass" type="password" placeholder="••••••••" minlength="8" required />
+          <label>Xác nhận mật khẩu</label>
+          <input id="regPass2" type="password" placeholder="••••••••" minlength="8" required />
+          <label>Vai trò</label>
+          <select id="regRole">
+            <option value="lab">Lab Admin</option>
+            <option value="central">Central Admin</option>
+          </select>
+          <label>Mã Lab (nếu chọn Lab Admin)</label>
+          <input id="regLab" placeholder="VD: LAB-E203" />
+          <button class="btn primary" type="submit">Tạo tài khoản</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  
+  <!-- ===== APP (Dashboard, hiện sau khi login) ===== -->
+  <div class="app hidden" id="appRoot">
+    <header>
+      <div class="logo">
+        <!-- ✅ LOGO ẢNH (đổi src theo file logo của bạn) -->
+        <img class="logo-img" src="logo-hcmute.png" alt="Logo" />
+
+        <div class="title">
+          <span>HỆ THỐNG QUẢN LÍ THIẾT BỊ PHÒNG THÍ NGHIỆM SPKT</span>
+        </div>
+      </div>
+
+      <!-- ✅ đệm để đẩy cụm bên phải sát phải (vì đã xoá search) -->
+      <div class="header-spacer"></div>
+
+      <div class="role">
+        <span class="muted-2">Vai trò:</span>
+        <span id="roleSelect" disabled>
+          <option value="lab">Lab Admin – Lab E-203</option>
+          <option value="central">Central Admin</option>
+        </span>
+      </div>
+
+      <div class="chip" id="profileBox">Chưa đăng nhập</div>
+      <button id="logoutBtn" class="btn ghost">Đăng xuất</button>
+      <div class="chip" id="clock"></div>
+    </header>
+
+
+    <div class="shell">
+      <aside>
+        <div class="section">Menu</div>
+        <nav id="nav"></nav>
+      </aside>
+
+      <main>
+        <div id="page" class="page"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== Firebase SDK (ESM) ===== -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+  import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyApc2JLs2Q5UrEsa3m9YhxxJfJ854VlJ1g",
+    authDomain: "ttgdatn.firebaseapp.com",
+    projectId: "ttgdatn",
+    storageBucket: "ttgdatn.appspot.com",     
+    messagingSenderId: "208000385079",
+    appId: "1:208000385079:web:b015e5e3d6ccf1ff593fb2",
+    measurementId: "G-0QN621MC82",
+    databaseURL: "https://ttgdatn-default-rtdb.firebaseio.com/"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const storage = getStorage(app);
+
+  window._firebase = {
+    db, ref, set, get, child,
+    storage,
+    storageTools: { sref, uploadBytes, getDownloadURL }
+  };
+</script>
+
+ <!-- QRCode & SheetJS -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+
+<!-- App Logic -->
+<script src="appp.js?v=10" defer></script>
+
+
+
+  <div id="itemModal" class="hidden"
+    style="position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);z-index:999;">
+    <div
+      style="background:#0f1726;border:1px solid rgba(255,255,255,.1);border-radius:16px;max-width:640px;width:95%;padding:20px;position:relative">
+      <button onclick="closeItemModal()"
+        style="position:absolute;top:10px;right:10px;background:transparent;border:0;font-size:20px;color:#fff;cursor:pointer"
+        aria-label="Đóng">&times;</button>
+      <div id="itemModalContent"></div>
+    </div>
+  </div>
+</body>
+<style>
+  .card[onclick]{ transition: transform .06s ease; }
+  .card[onclick]:hover{ transform: translateY(-2px); }
+</style>
+
+<style>
+  table tr.row-click,
+  table tr.row-click td {
+    cursor: pointer;
+  }
+  .ship-group { margin-bottom:16px; border:1px solid #2b3344; border-radius:10px; }
+.ship-head { background:#1b2232; padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+.ship-body { padding:8px 16px; }
+.dot { width:10px; height:10px; border-radius:50%; }
+.dot-green { background:#22c55e; }
+.dot-blue { background:#3b82f6; }
+.dot-orange { background:#f59e0b; }
+
+</style>
+
+
+</html>
