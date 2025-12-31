@@ -945,6 +945,7 @@ function showApp() { $('#auth').classList.add('hidden'); $('#appRoot').classList
 /***** DATA HELPERS (Firebase) *****/
 async function saveData(path, id, obj) { await set(ref(db, `${path}/${id}`), obj); }
 async function deleteData(path, id) { await set(ref(db, `${path}/${id}`), null); }
+
 async function getAll(path) { const snap = await get(ref(db, path)); return snap.exists() ? snap.val() : {}; }
 async function backfillShipmentIssueIdsOnce() {
   try {
@@ -1047,33 +1048,40 @@ async function createShipmentIssueAndLink(shipment, missingItemIds, extraSerials
 
 
 /***** AUTH FORMS *****/
+/***** AUTH FORMS *****/
 function bindAuth() {
-  const tLogin = $('#tabLogin'), tReg = $('#tabRegister'), fLogin = $('#loginForm'), fReg = $('#registerForm');
-  tLogin.onclick = () => { tLogin.classList.add('active'); tReg.classList.remove('active'); fLogin.classList.add('visible'); fReg.classList.remove('visible'); };
-  tReg.onclick = () => { tReg.classList.add('active'); tLogin.classList.remove('active'); fReg.classList.add('visible'); fLogin.classList.remove('visible'); };
+  const tLogin = $('#tabLogin');
+  const fLogin = $('#loginForm');
+
+  // Nếu HTML còn sót tab/form đăng ký thì ẩn luôn (an toàn)
+  const tReg = $('#tabRegister');
+  const fReg = $('#registerForm');
+  if (tReg) tReg.style.display = 'none';
+  if (fReg) fReg.style.display = 'none';
+
+  if (tLogin) {
+    tLogin.onclick = () => {
+      tLogin.classList.add('active');
+      if (tReg) tReg.classList.remove('active');
+      if (fLogin) fLogin.classList.add('visible');
+      if (fReg) fReg.classList.remove('visible');
+    };
+  }
 
   fLogin.addEventListener('submit', async e => {
     e.preventDefault();
-    const email = $('#loginEmail').value.trim().toLowerCase(), pass = $('#loginPass').value;
+    const email = $('#loginEmail').value.trim().toLowerCase();
+    const pass = $('#loginPass').value;
+
     const u = await getUserByEmail(email);
     if (!u) { toast('Email không tồn tại'); return; }
     if (await sha256(pass) !== u.pass) { toast('Mật khẩu sai'); return; }
-    setSession(u); afterLogin(u);
-  });
 
-  fReg.addEventListener('submit', async e => {
-    e.preventDefault();
-    const name = $('#regName').value.trim(), email = $('#regEmail').value.trim().toLowerCase();
-    const pass = $('#regPass').value, pass2 = $('#regPass2').value, role = $('#regRole').value;
-    const labId = $('#regLab').value.trim() || 'LAB-E203';
-    if (pass !== pass2) { toast('Xác nhận mật khẩu không khớp'); return; }
-    if (await getUserByEmail(email)) { toast('Email đã tồn tại'); return; }
-    const passHash = await sha256(pass);
-    const u = { id: 'u-' + Math.random().toString(36).slice(2, 7), name, email, pass: passHash, defaultRole: role, ...(role === 'lab' ? { labId } : {}) };
-    await saveUserToDB(u);
-    toast('Đăng ký thành công'); tLogin.click();
+    setSession(u);
+    afterLogin(u);
   });
 }
+
 
 
 /***** NAV + ROUTER *****/
@@ -1095,7 +1103,8 @@ const NAVS = {
     { href: '#/central-requests', icon: '📝', label: 'DUYỆT YÊU CẦU' },
     { href: '#/central-shipments', icon: '🚚', label: 'TẠO/ QUẢN LÝ SHIPMENT' },
     { href: '#/central-shipment-issues', icon: '⚠️', label: 'SAI KHÁC SHIPMENT' },
-    { href: '#/central-repairs', icon: '🛠️', label: 'BÁO HỎNG' },       // 👈 thêm
+    { href: '#/central-repairs', icon: '🛠️', label: 'BÁO HỎNG' },      
+    { href: '#/central-users', icon: '👤', label: 'QUẢN LÝ USER' }
   ]
 };
 
@@ -1223,7 +1232,9 @@ const CENTRAL_ROUTES = [
   '#/central-shipments', '#/central-import',
   '#/central-repairs',    // 👈 thêm
   '#/reports',             // 👈 thêm
-  '#/central-shipment-issues'
+  '#/central-shipment-issues',
+  '#/central-users' // 👈 thêm dòng này
+
 ];
 
 
@@ -8311,3 +8322,168 @@ async function printSelectedQrs() {
   w.document.close();
 }
 window.printSelectedQrs = printSelectedQrs;
+/***** CENTRAL: USERS MANAGEMENT *****/
+
+// cache list để render
+async function centralLoadUsers() {
+  try {
+    state.data._users = await getAllUsers(); // trả về array
+    renderPage();
+  } catch (e) {
+    console.error(e);
+    toast('Không tải được danh sách user');
+  }
+}
+
+async function centralCreateUser() {
+  try {
+    const name = (document.getElementById('cu_name')?.value || '').trim();
+    const email = (document.getElementById('cu_email')?.value || '').trim().toLowerCase();
+    const pass = (document.getElementById('cu_pass')?.value || '');
+    const role = (document.getElementById('cu_role')?.value || 'lab');
+    const labId = (document.getElementById('cu_lab')?.value || '').trim();
+
+    if (!name || !email || !pass) { toast('Vui lòng nhập đủ Họ tên / Email / Mật khẩu'); return; }
+    if (pass.length < 8) { toast('Mật khẩu tối thiểu 8 ký tự'); return; }
+    if (role === 'lab' && !labId) { toast('User Lab phải có Mã Lab (VD: LAB-E203)'); return; }
+
+    // chặn trùng email
+    const existed = await getUserByEmail(email);
+    if (existed) { toast('Email đã tồn tại'); return; }
+
+    const passHash = await sha256(pass);
+    const u = {
+      id: 'u-' + Math.random().toString(36).slice(2, 10),
+      name,
+      email,
+      pass: passHash,
+      defaultRole: role,
+      ...(role === 'lab' ? { labId } : {}),
+      createdAt: Date.now()
+    };
+
+    await saveUserToDB(u);
+    toast('Đã tạo user');
+
+    // clear form
+    document.getElementById('cu_name').value = '';
+    document.getElementById('cu_email').value = '';
+    document.getElementById('cu_pass').value = '';
+    document.getElementById('cu_lab').value = '';
+
+    await centralLoadUsers();
+  } catch (e) {
+    console.error(e);
+    toast('Tạo user thất bại');
+  }
+}
+
+async function centralDeleteUser(uid) {
+  try {
+    if (!uid) return;
+
+    // không cho xoá chính mình (nếu có state.user)
+    if (state.user && state.user.id === uid) {
+      toast('Không thể xoá user đang đăng nhập');
+      return;
+    }
+
+    if (!confirm('Xoá user này?')) return;
+
+    await deleteData(DB_USERS, uid);
+    toast('Đã xoá user');
+    await centralLoadUsers();
+  } catch (e) {
+    console.error(e);
+    toast('Xoá user thất bại');
+  }
+}
+
+// Page render
+PAGES['#/central-users'] = () => {
+  if (state.role !== 'central') return `<div class="card">Bạn không có quyền.</div>`;
+
+  // lần đầu vào trang thì load
+  if (!state.data._users) {
+    setTimeout(centralLoadUsers, 0);
+    return `<div class="card">Đang tải danh sách user...</div>`;
+  }
+
+  const users = state.data._users || [];
+  const rows = users.map((u, idx) => {
+    const role = u.defaultRole || u.role || '';
+    const lab = u.labId || '';
+    return `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${escapeHtml(u.name || '')}</td>
+        <td>${escapeHtml(u.email || '')}</td>
+        <td>${escapeHtml(role)}</td>
+        <td>${escapeHtml(lab)}</td>
+        <td style="text-align:right">
+          <button class="btn danger" onclick="centralDeleteUser('${u.id}')">Xoá</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="page-head">
+      <h1>Quản lý user</h1>
+      <div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px">
+        <div>
+          <label>Họ tên</label>
+          <input id="cu_name" placeholder="Nguyễn Văn A" />
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="cu_email" type="email" placeholder="you@example.com" />
+        </div>
+        <div>
+          <label>Mật khẩu</label>
+          <input id="cu_pass" type="password" placeholder=">= 8 ký tự" />
+        </div>
+
+        <div>
+          <label>Vai trò</label>
+          <select id="cu_role" onchange="document.getElementById('cu_lab_wrap').style.display = (this.value==='lab'?'block':'none')">
+            <option value="lab">Lab Admin</option>
+            <option value="central">Central Admin</option>
+          </select>
+        </div>
+
+        <div id="cu_lab_wrap">
+          <label>Mã Lab (nếu chọn Lab Admin)</label>
+          <input id="cu_lab" placeholder="VD: LAB-E203" />
+        </div>
+
+        <div style="display:flex; align-items:flex-end; gap:10px">
+          <button class="btn primary" onclick="centralCreateUser()">Tạo user</button>
+          <button class="btn" onclick="centralLoadUsers()">Tải lại</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Mã Lab</th>
+            <th style="text-align:right">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="6" class="muted">Chưa có user</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
