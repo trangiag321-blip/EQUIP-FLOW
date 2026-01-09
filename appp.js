@@ -5319,30 +5319,27 @@ function parseDateLoose(input) {
   const s = String(input).trim();
   if (!s) return null;
 
-  // ISO / Date() parse được
-  let d = new Date(s);
-  if (!isNaN(d.getTime())) return d;
-
-  // dd/mm/yyyy, HH:MM(:SS)?
-  // ví dụ: "15/12/2025, 19:28:30" hoặc "15/12/2025 19:28"
+  // 1) dd/mm/yyyy, HH:MM(:SS)?   (ưu tiên trước)
   let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
   if (m) {
     const dd = +m[1], MM = +m[2], yyyy = +m[3];
     const hh = +(m[4] || 0), mm = +(m[5] || 0), ss = +(m[6] || 0);
-    d = new Date(yyyy, MM - 1, dd, hh, mm, ss);
+    const d = new Date(yyyy, MM - 1, dd, hh, mm, ss);
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // ✅ HH:MM(:SS)? dd/mm/yyyy  (format bạn đang lưu: "19:28:30 15/12/2025")
+  // 2) HH:MM(:SS)? dd/mm/yyyy
   m = s.replace(',', '').match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) {
     const hh = +m[1], mm = +m[2], ss = +(m[3] || 0);
     const dd = +m[4], MM = +m[5], yyyy = +m[6];
-    d = new Date(yyyy, MM - 1, dd, hh, mm, ss);
+    const d = new Date(yyyy, MM - 1, dd, hh, mm, ss);
     return isNaN(d.getTime()) ? null : d;
   }
 
-  return null;
+  // 3) fallback: chỉ để cho ISO / format chuẩn
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
 }
 
 
